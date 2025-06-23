@@ -1,5 +1,6 @@
 import pymysql as sq
 import flask as fk
+import asyncio
 
 app = fk.Flask(__name__)
 
