@@ -83,9 +83,9 @@ const userStore = useUserStore()
 
 // 模型列表数据 测试
 const models = ref([
-  { name: '模型A', uploader: '张三', tags: ['分类', '公开'], needs: ['高精度'], date: '2025-06-01', desc: '示例模型A' },
-  { name: '模型B', uploader: '李四', tags: ['回归'], needs: ['低延迟'], date: '2025-06-10', desc: '示例模型B' },
-  { name: '模型C', uploader: '王五', tags: ['聚类', '私有'], needs: ['大数据'], date: '2025-06-15', desc: '示例模型C' },
+  { name: '模型A', uploader: '张三', tags: ['分类', '公开'], needs: ['图像','128x128'], date: '2025-06-01', desc: '示例模型A' },
+  { name: '模型B', uploader: '李四', tags: ['回归'], needs: ['文本'], date: '2025-06-10', desc: '示例模型B' },
+  { name: '模型C', uploader: '王五', tags: ['聚类', '私有'], needs: ['图像'], date: '2025-06-15', desc: '示例模型C' },
   // ...可添加更多数据
 ])
 

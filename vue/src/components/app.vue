@@ -73,9 +73,15 @@
                   <el-input v-model="loginForm.email" />
                 </el-form-item>
               </el-form>
+              <el-row justify="center" v-if="loading">
+                <el-col :span="24" style="text-align:center; margin-bottom: 10px;">
+                  <el-spin size="large" />
+                </el-col>
+              </el-row>
               <template #footer>
                 <el-button @click="dialogVisible = false">取消</el-button>
-                <el-button type="primary" @click="onSubmit">{{ isRegisterMode ? '注册' : '登录' }}</el-button>
+                <el-button type="primary" @click="onSubmit" :loading="loading">{{ isRegisterMode ? '注册' : '登录'
+                  }}</el-button>
                 <el-button type="link" @click="toggleMode">
                   {{ isRegisterMode ? '已有账号？去登录' : '没有账号？去注册' }}
                 </el-button>
@@ -118,6 +124,8 @@ import {
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import type { FormInstance } from 'element-plus'
+import axios from 'axios'
+import { ElMessage } from 'element-plus'
 
 // -------------------- 侧边栏菜单相关 --------------------
 const activeMenu = ref('1')
@@ -200,6 +208,7 @@ const userStore = useUserStore()
 userStore.init()
 const dialogVisible = ref(false)
 const isRegisterMode = ref(false) // true 表示注册模式
+const loading = ref(false)
 
 // 登录/注册表单校验规则
 const rules = {
@@ -265,21 +274,52 @@ const toggleMode = () => {
 }
 
 // 登录/注册提交
-const onSubmit = () => {
+const onSubmit = async () => {
   if (!loginFormRef.value) return
-  loginFormRef.value.validate((valid: boolean) => {
+  loginFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return
+    loading.value = true
     if (isRegisterMode.value) {
       // 注册逻辑
-      console.log('注册成功:', loginForm.value)
-      userStore.login(loginForm.value.username) // 自动登录
+      try {
+        const res = await axios.post('http://localhost:9982/register', {
+          username: loginForm.value.username,
+          password: loginForm.value.password,
+          email: loginForm.value.email
+        })
+        if (res.data.success) {
+          ElMessage.success('注册成功，请登录')
+          isRegisterMode.value = false
+          resetFormData()
+        } else {
+          ElMessage.error(res.data.msg || '注册失败')
+        }
+      } catch (e: any) {
+        ElMessage.error(e.response?.data?.msg || '注册失败')
+      } finally {
+        loading.value = false
+      }
     } else {
       // 登录逻辑
-      console.log('登录成功:', loginForm.value)
-      userStore.login(loginForm.value.username)
+      try {
+        const res = await axios.post('http://localhost:9982/login', {
+          username: loginForm.value.username,
+          password: loginForm.value.password
+        })
+        if (res.data.success) {
+          ElMessage.success('登录成功')
+          userStore.login(loginForm.value.username)
+          dialogVisible.value = false
+          resetFormData()
+        } else {
+          ElMessage.error(res.data.msg || '登录失败')
+        }
+      } catch (e: any) {
+        ElMessage.error(e.response?.data?.msg || '登录失败')
+      } finally {
+        loading.value = false
+      }
     }
-    dialogVisible.value = false
-    resetFormData()
   })
 }
 </script>
