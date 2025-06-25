@@ -6,7 +6,7 @@
     <el-table :data="datasets.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
       style="width: 100%; margin-top: 16px;">
       <el-table-column prop="name" label="数据集名称" width="180" />
-      <el-table-column prop="uploader" label="上传者" width="120" />
+      <el-table-column prop="uploader" label="上传者" width="130" />
       <el-table-column label="标签">
         <template #default="scope">
           <el-tag v-for="tag in scope.row.tags" :key="tag" style="margin-right: 4px;">{{ tag }}</el-tag>
@@ -21,17 +21,26 @@
     </div>
     <!-- 上传对话框 -->
     <el-dialog v-model="dialogVisible" title="上传数据集" width="500px">
-      <el-form label-width="80px">
+      <el-form label-width="50px">
         <el-form-item label="名称">
           <el-input v-model="uploadName" placeholder="请输入数据集名称" />
         </el-form-item>
         <el-form-item label="文件">
-          <el-upload drag action="#" :auto-upload="false" v-model:file-list="uploadFileList" :limit="1"
-            :on-remove="(file: any) => uploadFileList.splice(uploadFileList.indexOf(file), 1)"
-            :on-change="(_file: any) => uploadFileList.length = 1">
-            <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
-            <div class="el-upload__text">拖拽文件到此处，或 <em>点击上传</em></div>
-          </el-upload>
+          <div class="upload-wrapper">
+            <el-upload
+              drag
+              action="#"
+              :auto-upload="false"
+              v-model:file-list="uploadFileList"
+              :limit="1"
+              :on-remove="(file: any) => uploadFileList.splice(uploadFileList.indexOf(file), 1)"
+              :on-change="(_file: any) => uploadFileList.length = 1"
+            >
+              <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+              <div class="el-upload__text">拖拽文件到此处，或 <em>点击上传</em></div>
+              <div class="el-upload__tip">仅支持.zip格式文件</div>
+            </el-upload>
+          </div>
         </el-form-item>
         <el-form-item label="标签">
           <el-select v-model="uploadTags" multiple placeholder="请选择标签">
@@ -73,7 +82,7 @@ const total = ref(datasets.value.length)
 
 // 上传对话框
 const dialogVisible = ref(false)
-const uploadFileList = ref([])
+const uploadFileList = ref<any[]>([])
 const uploadDesc = ref('')
 const uploadTags = ref([])
 const uploadName = ref('')
@@ -82,8 +91,8 @@ const tagOptions = [
   { label: '图像', value: '图像' },
   { label: '文本', value: '文本' },
   { label: '音频', value: '音频' },
-  { label: '公开', value: '公开' },
-  { label: '私有', value: '私有' },
+  { label: '训练', value: '训练' },
+  { label: '预测', value: '预测' },
 ]
 
 const handleUploadBtn = () => {
@@ -126,4 +135,14 @@ const handleUpload = () => {
   justify-content: flex-end;
   align-items: center;
 }
+
+.upload-wrapper {
+  width: 100%;
+}
+
+.upload-wrapper .el-upload {
+  width: 100%;
+}
+
+
 </style>

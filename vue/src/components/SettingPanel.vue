@@ -1,7 +1,6 @@
 <template>
   <div class="setting-panel">
-    <h3>设置面板</h3>
-    <p>这里是设置相关内容。</p>
+    <h3>等待开发</h3>
   </div>
 </template>
 
