@@ -2,31 +2,40 @@
   <!-- 主布局容器 -->
   <el-container class="app-root">
     <!-- 侧边栏 -->
-    <el-aside :width="asideWidth + 'px'" class="sidebar">
+    <el-aside :width="asideWidth + 'px'" class="sidebar" :class="{ collapsed: asideWidth < 200 }">
       <!-- 菜单 -->
-      <el-menu
-        :default-active="activeMenu"
-        class="el-menu-vertical-demo"
-        @select="handleSelect"
-        background-color="var(--el-bg-color-overlay)"
-        text-color="var(--el-text-color-primary)"
-        active-text-color="var(--el-color-primary)"
-      >
+      <el-menu :default-active="activeMenu" class="el-menu-vertical-demo" @select="handleSelect"
+        background-color="var(--el-bg-color-overlay)" text-color="var(--el-text-color-primary)"
+        active-text-color="var(--el-color-primary)">
         <el-menu-item index="1">
-          <el-icon><HomeFilled /></el-icon>
+          <el-icon>
+            <HomeFilled />
+          </el-icon>
           <span>主页</span>
         </el-menu-item>
         <el-menu-item index="2">
-          <el-icon><Cpu /></el-icon>
+          <el-icon>
+            <Cpu />
+          </el-icon>
           <span>模型管理</span>
         </el-menu-item>
         <el-menu-item index="3">
-          <el-icon><Files /></el-icon>
+          <el-icon>
+            <Files />
+          </el-icon>
           <span>数据集管理</span>
         </el-menu-item>
         <el-menu-item index="4">
-          <el-icon><List /></el-icon>
+          <el-icon>
+            <List />
+          </el-icon>
           <span>任务管理</span>
+        </el-menu-item>
+        <el-menu-item index="5">
+          <el-icon>
+            <Setting />
+          </el-icon>
+          <span>设置</span>
         </el-menu-item>
       </el-menu>
       <!-- 拖拽条：用于调整侧边栏宽度 -->
@@ -53,7 +62,8 @@
                   <el-input v-model="loginForm.username" />
                 </el-form-item>
                 <el-form-item label="密码" prop="password">
-                  <el-input type="password" v-model="loginForm.password" :show-password="true" />
+                  <el-input type="password" v-model="loginForm.password" :show-password="true"
+                    @keyup.enter="onSubmit" />
                 </el-form-item>
                 <!-- 注册模式下额外显示 -->
                 <el-form-item v-if="isRegisterMode" label="确认密码" prop="confirmPassword">
@@ -88,7 +98,7 @@
       </el-header>
       <!-- 主内容区 -->
       <el-main class="main-content">
-        <HomeView />
+        <router-view />
       </el-main>
     </el-container>
   </el-container>
@@ -103,40 +113,83 @@ import {
   Cpu,
   Files,
   List,
+  Setting,
 } from '@element-plus/icons-vue'
-import HomeView from '../views/HomeView.vue'
+import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import type { FormInstance } from 'element-plus'
 
 // -------------------- 侧边栏菜单相关 --------------------
 const activeMenu = ref('1')
+const router = useRouter()
+
 const handleSelect = (index: string) => {
   activeMenu.value = index
+  // 根据菜单项跳转路由
+  switch (index) {
+    case '1':
+      router.push({ name: 'home' })
+      break
+    case '2':
+      router.push({ name: 'model' })
+      break
+    case '3':
+      router.push({ name: 'dataset' })
+      break
+    case '4':
+      router.push({ name: 'task' })
+      break
+    case '5':
+      router.push({ name: 'setting' })
+      break
+  }
 }
 
 // -------------------- 侧边栏拖拽相关 --------------------
 const asideWidth = ref(200) // 侧边栏初始宽度
-const minWidth = 120        // 最小宽度
-const maxWidth = 400        // 最大宽度
+const minWidth = 200        // 最小宽度
+const maxWidth = 300        // 最大宽度
+const collapsedWidth = 70; // 侧边栏折叠后的宽度，与样式保持一致
+const snapThreshold = 20; // 吸附阈值，越小越丝滑
 let startX = 0              // 拖拽起始鼠标位置
 let startWidth = 0          // 拖拽起始宽度
+let isDragging = false;
 
 const startDrag = (e: MouseEvent) => {
-  startX = e.clientX
-  startWidth = asideWidth.value
-  document.addEventListener('mousemove', onDrag)
-  document.addEventListener('mouseup', stopDrag)
-}
+  startX = e.clientX;
+  startWidth = asideWidth.value;
+  isDragging = true;
+  document.body.style.cursor = 'ew-resize';
+  document.addEventListener('mousemove', onDrag);
+  document.addEventListener('mouseup', stopDrag);
+};
+
 const onDrag = (e: MouseEvent) => {
-  const delta = e.clientX - startX
-  let newWidth = startWidth + delta
-  if (newWidth < minWidth) newWidth = minWidth
-  if (newWidth > maxWidth) newWidth = maxWidth
-  asideWidth.value = newWidth
-}
+  if (!isDragging) return;
+  const delta = e.clientX - startX;
+  let newWidth = startWidth + delta;
+
+  // 丝滑吸附逻辑
+  if (newWidth < collapsedWidth + snapThreshold) {
+    newWidth = collapsedWidth;
+  } else if (newWidth < minWidth) {
+    newWidth = minWidth;
+  }
+  if (newWidth > maxWidth) {
+    newWidth = maxWidth;
+  }
+  asideWidth.value = newWidth;
+};
+
 const stopDrag = () => {
-  document.removeEventListener('mousemove', onDrag)
-  document.removeEventListener('mouseup', stopDrag)
+  isDragging = false;
+  document.body.style.cursor = '';
+  // 松手时如果接近折叠宽度则吸附
+  if (asideWidth.value < collapsedWidth + snapThreshold) {
+    asideWidth.value = collapsedWidth;
+  }
+  document.removeEventListener('mousemove', onDrag);
+  document.removeEventListener('mouseup', stopDrag);
 }
 
 // -------------------- 深色模式 --------------------
@@ -153,8 +206,8 @@ const rules = {
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
     {
-      pattern: /^[a-zA-Z0-9_]{3,20}$/,
-      message: '用户名只能包含字母、数字和下划线，且长度为3-20位',
+      pattern: /^[a-zA-Z0-9_]{3,14}$/,
+      message: '用户名只能包含字母、数字和下划线，且长度为3-14位',
       trigger: 'blur'
     }
   ],
@@ -252,20 +305,37 @@ const onSubmit = () => {
   position: relative;
 }
 
-/* 拖拽条样式 */
+/* 调整拖拽条样式 */
 .drag-bar {
   position: absolute;
   top: 0;
   right: 0;
-  width: 4px;
+  width: 5px;
   height: 100%;
   cursor: ew-resize;
   background: var(--el-border-color-dark);
   z-index: 10;
-  transition: background 0.2s;
+  transition: background 0.2s, right 0.2s;
+  /* 拖拽时更宽，提升体验 */
 }
+
 .drag-bar:hover {
   background: var(--el-color-primary);
+}
+
+/* 折叠状态下的侧边栏样式 */
+.sidebar.collapsed {
+  width: 70px;
+  overflow: hidden;
+}
+
+/* 调整菜单图标和文字样式 */
+.sidebar.collapsed .el-menu-item span {
+  display: none;
+}
+
+.sidebar.collapsed .el-menu-item .el-icon {
+  margin: 0 auto;
 }
 
 /* 顶栏样式 */
