@@ -6,7 +6,7 @@ def get_db():
         user="root",
         password="wuhantuMJ0209",
         port=3306,
-        database='test',
+        database='root',
         charset='utf8mb4'
     )
 

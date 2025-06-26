@@ -1,26 +1,11 @@
 import flask as fk
 import pymysql as sq
 from flask import Blueprint
+from get_db import get_db
 
 from hashlib import sha256
 
 register_bp = Blueprint('register', __name__)
-
-DB_HOST = "127.0.0.1"
-DB_USER = "root"
-DB_PASSWORD = "wuhantuMJ0209"
-DB_NAME = "root"
-DB_PORT = 3306
-DB_CHARSET = "utf8mb4"
-
-
-def get_db():
-    return sq.connect(host=DB_HOST,
-                      user=DB_USER,
-                      password=DB_PASSWORD,
-                      database=DB_NAME,
-                      port=DB_PORT,
-                      charset=DB_CHARSET)
 
 
 @register_bp.route('/register', methods=['POST'])
@@ -45,7 +30,11 @@ def register():
             'INSERT INTO passwd (user_id, password) VALUES (%s, %s)',
             (user_id, sha256(password.encode()).hexdigest()))
         db.commit()
-        return fk.jsonify({'success': True, 'msg': '注册成功', 'username': username}), 201
+        return fk.jsonify({
+            'success': True,
+            'msg': '注册成功',
+            'username': username
+        }), 201
     except Exception as e:
         db.rollback()
         return fk.jsonify({'success': False, 'msg': str(e)}), 500

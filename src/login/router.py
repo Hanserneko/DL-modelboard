@@ -1,25 +1,10 @@
 import flask as fk
 import pymysql as sq
 from flask import Blueprint
+from get_db import get_db
 from hashlib import sha256
 
 login_bp = Blueprint('login', __name__)
-
-DB_HOST = "127.0.0.1"
-DB_USER = "root"
-DB_PASSWORD = "wuhantuMJ0209"
-DB_NAME = "root"
-DB_PORT = 3306
-DB_CHARSET = "utf8mb4"
-
-
-def get_db():
-    return sq.connect(host=DB_HOST,
-                      user=DB_USER,
-                      password=DB_PASSWORD,
-                      database=DB_NAME,
-                      port=DB_PORT,
-                      charset=DB_CHARSET)
 
 
 @login_bp.route('/login', methods=['POST'])
